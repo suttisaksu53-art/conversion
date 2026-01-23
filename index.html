@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบกรอกข้อมูลดิน (Soil Data Tool)</title>
+    
+    <!-- ไลบรารี -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: #f0f2f5; /* Facebook Background Color */
+            color: #1c1e21;
+        }
+        
+        /* Facebook-like Card */
+        .fb-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        /* Facebook Blue Button */
+        .btn-fb {
+            background-color: #1877f2;
+            color: white;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        .btn-fb:hover { background-color: #166fe5; }
+        .btn-fb:disabled { background-color: #e4e6eb; color: #bcc0c4; cursor: not-allowed; }
+
+        /* Secondary Button */
+        .btn-secondary {
+            background-color: #e4e6eb;
+            color: #050505;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+        .btn-secondary:hover { background-color: #d8dadf; }
+
+        /* File Upload Box */
+        .upload-box {
+            border: 2px dashed #ccd0d5;
+            background-color: #f7f8fa;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .upload-box:hover { border-color: #1877f2; background-color: #f0f8ff; }
+        .upload-box.selected { border-color: #42b72a; background-color: #e7f3e8; }
+
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3; border-top: 3px solid #1877f2;
+            border-radius: 50%; width: 20px; height: 20px;
+            animation: spin 1s linear infinite; display: inline-block;
+            vertical-align: middle;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Table */
+        .fb-table th { background-color: #f0f2f5; color: #65676b; font-weight: 600; font-size: 0.85rem; }
+        .fb-table td { border-bottom: 1px solid #e4e6eb; font-size: 0.9rem; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50 h-16 flex items-center px-4 md:px-8">
+        <div class="flex items-center gap-3 text-[#1877f2]">
+            <i class="fa-solid fa-flask text-3xl"></i>
+            <h1 class="text-2xl font-bold tracking-tight">Soil Data Tool</h1>
+        </div>
+        <div class="ml-auto">
+            <button onclick="window.location.reload()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-full transition" title="รีเซ็ตโปรแกรม">
+                <i class="fa-solid fa-rotate-right text-xl"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <main class="flex-grow container mx-auto max-w-4xl p-4 md:p-6">
+        
+        <!-- Welcome Card -->
+        <div class="fb-card">
+            <h2 class="text-xl font-bold mb-2">👋 ยินดีต้อนรับ</h2>
+            <p class="text-gray-600">โปรแกรมช่วยกรอกข้อมูลผลวิเคราะห์ดินอัตโนมัติ แม่นยำ 100%</p>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Step 1 -->
+            <div class="fb-card">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-gray-700">1. ไฟล์ต้นฉบับ</h3>
+                    <span class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full font-bold">มีข้อมูล</span>
+                </div>
+                <div class="relative group h-40">
+                    <input type="file" id="sourceFile" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFile(this, 'sourceBox')">
+                    <div id="sourceBox" class="upload-box w-full h-full flex flex-col items-center justify-center text-center p-4">
+                        <i class="fa-solid fa-file-excel text-3xl text-gray-400 mb-2"></i>
+                        <span class="text-sm font-medium text-gray-500">คลิกเลือกไฟล์ผลวิเคราะห์</span>
+                        <span class="text-xs text-gray-400 mt-1">(เช่น 69-1665.xlsx)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="fb-card">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-gray-700">2. ไฟล์แม่แบบ</h3>
+                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-bold">ตารางเปล่า</span>
+                </div>
+                <div class="relative group h-40">
+                    <input type="file" id="targetFile" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFile(this, 'targetBox')">
+                    <div id="targetBox" class="upload-box w-full h-full flex flex-col items-center justify-center text-center p-4">
+                        <i class="fa-solid fa-table text-3xl text-gray-400 mb-2"></i>
+                        <span class="text-sm font-medium text-gray-500">คลิกเลือกไฟล์ตารางเปล่า</span>
+                        <span class="text-xs text-gray-400 mt-1">(เช่น data_analysis...)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="fb-card flex flex-col md:flex-row gap-3">
+            <button onclick="previewData()" id="previewBtn" class="btn-secondary flex-1 py-3" disabled>
+                <i class="fa-solid fa-eye mr-2"></i>ตรวจสอบตัวอย่างข้อมูล
+            </button>
+            <button onclick="downloadData()" id="downloadBtn" class="btn-fb flex-1 py-3" disabled>
+                <i class="fa-solid fa-download mr-2"></i>บันทึกและดาวน์โหลด
+            </button>
+        </div>
+
+        <!-- Preview Section -->
+        <div id="previewSection" class="hidden animate-fade-in">
+            <div class="fb-card">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-gray-800">ตัวอย่างข้อมูล</h3>
+                    <span id="recordCount" class="text-xs text-gray-500"></span>
+                </div>
+                <div class="overflow-x-auto border border-gray-200 rounded-lg max-h-96">
+                    <table class="w-full text-left fb-table whitespace-nowrap">
+                        <thead class="sticky top-0 bg-[#f0f2f5] z-10">
+                            <tr id="previewHeader"></tr>
+                        </thead>
+                        <tbody id="previewBody" class="bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Log (Hidden mostly, show on error) -->
+        <div id="logArea" class="hidden text-xs text-red-500 text-center mb-4"></div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t py-6 text-center">
+        <div class="flex items-center justify-center gap-2 text-gray-700 font-bold text-lg mb-1">
+            <i class="fa-solid fa-flask text-[#1877f2]"></i>
+            <span>กลุ่มวิจัยเคมีดิน</span>
+        </div>
+        <p class="text-gray-400 text-sm">Designed & Developed for Soil Chemistry Research Group</p>
+    </footer>
+
+    <script>
+        // ==========================================
+        // CONFIGURATION (V19 Logic - The Perfect One)
+        // ==========================================
+        
+        const MAPPING = [
+            { id: 'Lab No', src: ['labno'] },
+            { id: 'pHH2O', src: ['phh2o', 'phh20'] },
+            { id: 'pHKCl', src: ['phkci', 'phkcl'] },
+            { id: 'pHCaCl2', src: ['phcaci2', 'phcacl2'] },
+            { id: 'ค่าการนำไฟฟ้า5/ (EC)', src: ['ec1:5', 'ec15'] },
+            { id: 'อินทรียวัตถุ1/ (OM)', src: ['om', 'อินทรียวัตถุ'] },
+            { id: 'OC', src: ['oc'] },
+            { id: 'ฟอสฟอรัส2/ (P)', src: ['p', 'pbray', 'p-bray', 'ฟอสฟอรัส'] },
+            { id: 'โพแทสเซียม3/ (K)', src: ['avail.k', 'availk'] }, 
+            { id: 'แคลเซียม3/(Ca)', src: ['avail.ca', 'availca'] }, 
+            { id: 'แมกนีเซียม3/ (Mg)', src: ['avail.mg', 'availmg'] },
+            { id: 'Extr.Na', src: ['avail.na', 'availna', 'extr.na'] },
+            { id: 'Exch.Al', src: ['ai-kci', 'aikci', 'alkcl', 'al-kcl'] },
+            { id: 'Exch.Ca2+', src: ['exch.ca', 'exchca'] },
+            { id: 'Exch.K+', src: ['exch.k', 'exchk'] },
+            { id: 'Exch.Mg2+', src: ['exch.mg', 'exchmg'] },
+            { id: 'Exch.Na+', src: ['exch.na', 'exchna'] },
+            { id: 'Sol.Ca2+', src: ['sol.ca2+', 'solca2+', 'sol.ca'] },
+            { id: 'Sol.K+', src: ['sol.k+', 'solk+', 'sol.k'] },
+            { id: 'Sol.Mg2+', src: ['sol.mg2+', 'solmg2+', 'sol.mg'] },
+            { id: 'Sol.Na+', src: ['sol.na+', 'solna+', 'sol.na'] },
+            { id: 'Sol.Cl-', src: ['sol.cl-', 'solcl-'] },
+            { id: 'Sol.CO32-', src: ['sol.co32-', 'solco32-'] },
+            { id: 'Sol.HCO3-', src: ['sol.hco3-', 'solhco3-'] },
+            { id: 'Sol.SO42-', src: ['sol.so42-', 'solso42-'] },
+            { id: 'Extr.Cu', src: ['cu-dtpa', 'cudtpa'] },
+            { id: 'Extr.Fe', src: ['fe-dtpa', 'fedtpa'] },
+            { id: 'Extr.Mn', src: ['mn-dtpa', 'mndtpa'] },
+            { id: 'Extr.Zn', src: ['zn-dtpa', 'zndtpa'] },
+            { id: 'Fe2O3', src: ['fe-dcb', 'fedcb', 'fe2o3'] },
+            { id: 'Extr.S', src: ['s-nh4oacph5', 'snh4', 'extr.s'] },
+            { id: 'Active Carbon', src: ['activecarbon'] },
+            { id: 'CEC', src: ['cecnh40acph7', 'cec'] },
+            { id: 'BS', src: ['%bs', 'bs'] },
+            { id: 'EA', src: ['ea-bacl2', 'eabacl2', 'ea'] },
+            { id: 'ECe', src: ['ece'] },
+            { id: 'GR', src: ['gr'] },
+            { id: 'LR', src: ['lr'] }
+        ];
+
+        let sourceDataMap = {}; 
+        let targetWorkbook = null;
+        let targetInfo = {};
+
+        // UI Functions
+        function log(msg) {
+            const el = document.getElementById('logArea');
+            el.classList.remove('hidden');
+            el.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> ${msg}`;
+        }
+
+        function handleFile(input, boxId) {
+            const name = input.files[0]?.name;
+            const box = document.getElementById(boxId);
+            if(name) {
+                box.innerHTML = `
+                    <div class="text-green-600 flex flex-col items-center">
+                        <i class="fa-solid fa-circle-check text-4xl mb-2"></i>
+                        <span class="font-bold text-sm truncate max-w-[200px]">${name}</span>
+                    </div>`;
+                box.classList.add('selected');
+                box.classList.remove('border-dashed');
+            }
+            checkButtons();
+        }
+
+        function checkButtons() {
+            const f1 = document.getElementById('sourceFile').files[0];
+            const f2 = document.getElementById('targetFile').files[0];
+            if(f1 && f2) document.getElementById('previewBtn').disabled = false;
+        }
+
+        function getSafeStr(cellVal) {
+            if (cellVal === null || cellVal === undefined) return '';
+            if (typeof cellVal === 'object') {
+                if (cellVal.richText) return cellVal.richText.map(t => t.text).join('');
+                return cellVal.text || cellVal.result || '';
+            }
+            return String(cellVal);
+        }
+
+        function cleanStr(s) {
+            return getSafeStr(s).toLowerCase().replace(/[\s\.\/\-\(\)]/g, '');
+        }
+
+        // Logic Functions (V19 Logic)
+        async function previewData() {
+            const btn = document.getElementById('previewBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader mr-2"></span> กำลังประมวลผล...';
+            document.getElementById('logArea').classList.add('hidden');
+            document.getElementById('previewSection').classList.add('hidden');
+            
+            try {
+                // 1. Source File
+                const sFile = document.getElementById('sourceFile').files[0];
+                const sBuf = await readFile(sFile);
+                const sWb = XLSX.read(sBuf, {type:'array'});
+                
+                const sheetName = sWb.SheetNames.find(n => n.includes('ผลวิเคราะห์'));
+                if (!sheetName) throw new Error("ไม่พบ Sheet ชื่อ 'ผลวิเคราะห์' ในไฟล์ต้นฉบับ");
+                
+                const sSheet = sWb.Sheets[sheetName];
+                const sDataFull = XLSX.utils.sheet_to_json(sSheet, {header:1, raw:false, defval:''});
+                
+                let sHeaderIdx = -1, sLabIdx = -1;
+                for(let i=0; i<Math.min(sDataFull.length, 50); i++) {
+                    const row = sDataFull[i];
+                    for(let j=0; j<row.length; j++) {
+                        if(cleanStr(row[j]).includes('labno')) {
+                            sHeaderIdx = i; sLabIdx = j; break;
+                        }
+                    }
+                    if(sHeaderIdx !== -1) break;
+                }
+
+                if(sHeaderIdx === -1) throw new Error("รูปแบบไฟล์ไม่ถูกต้อง: ไม่พบคำว่า 'Lab No.' ใน Sheet ผลวิเคราะห์");
+
+                const sHeaderRow = sDataFull[sHeaderIdx];
+                const sourceColMap = {}; 
+                
+                MAPPING.forEach(m => {
+                    if(m.id === 'Lab No') return;
+                    for(let j=0; j<sHeaderRow.length; j++) {
+                        const h = cleanStr(sHeaderRow[j]);
+                        if(m.src.some(k => h === cleanStr(k) || h.includes(cleanStr(k)))) {
+                            sourceColMap[m.id] = j; break; 
+                        }
+                    }
+                });
+
+                sourceDataMap = {}; 
+                let count = 0;
+                for(let i=sHeaderIdx+1; i<sDataFull.length; i++) {
+                    const row = sDataFull[i];
+                    const labNo = String(row[sLabIdx]||'').trim();
+                    if(!labNo || labNo.length < 3 || labNo.includes('(')) continue;
+
+                    if(!sourceDataMap[labNo]) sourceDataMap[labNo] = {};
+                    for(let [id, colIdx] of Object.entries(sourceColMap)) {
+                        const val = row[colIdx];
+                        if(val !== undefined && val !== '') sourceDataMap[labNo][id] = val;
+                    }
+                    count++;
+                }
+
+                // 2. Target File
+                const tFile = document.getElementById('targetFile').files[0];
+                const tBuf = await readFile(tFile);
+                targetWorkbook = new ExcelJS.Workbook();
+                await targetWorkbook.xlsx.load(tBuf);
+                const ws = targetWorkbook.getWorksheet(1);
+
+                let tHeaderIdx = -1, tLabIdx = -1;
+                const tColMap = {}; 
+
+                ws.eachRow((row, rIdx) => {
+                    if(tHeaderIdx !== -1) return;
+                    row.eachCell((cell, cIdx) => {
+                        const val = cleanStr(getSafeStr(cell.value));
+                        if(val.includes('เลขปฏิบัติการ') || val.includes('เลขที่ปฏิบัติการ') || val.includes('labno')) {
+                            tHeaderIdx = rIdx; tLabIdx = cIdx;
+                        }
+                    });
+
+                    if(tHeaderIdx === rIdx) {
+                        row.eachCell((cell, cIdx) => {
+                            const val = cleanStr(getSafeStr(cell.value));
+                            MAPPING.forEach(m => {
+                                if(m.id === 'Lab No') return;
+                                const idKey = cleanStr(m.id.split('/')[0]); 
+                                if(val.includes(idKey) || val.includes(cleanStr(m.id))) {
+                                    tColMap[m.id] = cIdx;
+                                }
+                            });
+                        });
+                    }
+                });
+
+                if(tHeaderIdx === -1) throw new Error("ไม่พบ 'เลขปฏิบัติการ' ในไฟล์แม่แบบ");
+                targetInfo = { tHeaderIdx, tLabIdx, tColMap };
+
+                // 3. Render Preview
+                const foundIds = MAPPING.filter(m => tColMap[m.id] !== undefined && m.id !== 'Lab No').map(m => m.id);
+                let headHtml = '<th class="px-4 py-3 sticky left-0 z-20 bg-[#f0f2f5] border-b border-r shadow-sm">Lab No.</th>';
+                foundIds.forEach(id => {
+                    headHtml += `<th class="px-4 py-3 text-center border-b border-r">${id}</th>`;
+                });
+                document.getElementById('previewHeader').innerHTML = headHtml;
+
+                let previewHtml = '';
+                let previewCount = 0;
+                ws.eachRow((row, rIdx) => {
+                    if(rIdx <= tHeaderIdx || previewCount >= 5) return;
+                    const labNo = String(getSafeStr(row.getCell(tLabIdx).value)).trim();
+                    if(sourceDataMap[labNo]) {
+                        let rowHtml = `<tr class="hover:bg-gray-50 transition"><td class="px-4 py-3 font-semibold text-gray-900 border-b border-r sticky left-0 bg-white z-10 shadow-sm">${labNo}</td>`;
+                        const data = sourceDataMap[labNo];
+                        foundIds.forEach(id => {
+                            const val = data[id];
+                            const display = (val === undefined || val === '') ? '-' : val;
+                            const color = display === '-' ? 'text-gray-300' : 'text-[#1877f2] font-medium';
+                            rowHtml += `<td class="px-4 py-3 ${color} border-b border-r text-center">${display}</td>`;
+                        });
+                        rowHtml += '</tr>';
+                        previewHtml += rowHtml;
+                        previewCount++;
+                    }
+                });
+
+                if(previewCount === 0) {
+                     previewHtml = '<tr><td colspan="100%" class="p-8 text-center text-gray-400">ไม่พบ Lab No. ที่ตรงกันในทั้ง 2 ไฟล์</td></tr>';
+                } else {
+                    document.getElementById('downloadBtn').disabled = false;
+                    document.getElementById('recordCount').innerText = `เจอข้อมูล ${count} รายการ`;
+                }
+
+                document.getElementById('previewBody').innerHTML = previewHtml;
+                document.getElementById('previewSection').classList.remove('hidden');
+                
+            } catch (e) {
+                console.error(e);
+                log(e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-eye mr-2"></i>ตรวจสอบตัวอย่างข้อมูล';
+            }
+        }
+
+        async function downloadData() {
+            const btn = document.getElementById('downloadBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader mr-2"></span> กำลังบันทึก...';
+            
+            try {
+                const ws = targetWorkbook.getWorksheet(1);
+                ws.eachRow((row, rIdx) => {
+                    if(rIdx <= targetInfo.tHeaderIdx) return;
+                    const labNo = String(getSafeStr(row.getCell(targetInfo.tLabIdx).value)).trim();
+                    if(sourceDataMap[labNo]) {
+                        const data = sourceDataMap[labNo];
+                        Object.entries(targetInfo.tColMap).forEach(([id, cIdx]) => {
+                            const val = data[id];
+                            if(val !== undefined && val !== '') row.getCell(cIdx).value = val;
+                        });
+                    }
+                });
+
+                const buffer = await targetWorkbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "ผลวิเคราะห์_Complete.xlsx";
+                a.click();
+            } catch (e) {
+                log(e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>เรียบร้อย (ดาวน์โหลดอีกครั้ง)';
+            }
+        }
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+    </script>
+</body>
+</html>
