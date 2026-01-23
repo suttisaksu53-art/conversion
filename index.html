@@ -3,183 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบกรอกข้อมูลดิน (Soil Data Tool)</title>
+    <title>Data Tool</title>
     
     <!-- ไลบรารี -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         body { 
-            font-family: 'Sarabun', sans-serif; 
-            background-color: #f0f2f5; /* Facebook Background Color */
-            color: #1c1e21;
+            font-family: 'Prompt', sans-serif; 
+            background-color: #f3f4f6;
+            background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-attachment: fixed;
+            background-size: cover;
+            min-height: 100vh;
         }
         
-        /* Facebook-like Card */
-        .fb-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-            padding: 16px;
-            margin-bottom: 16px;
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.5);
         }
 
-        /* Facebook Blue Button */
-        .btn-fb {
-            background-color: #1877f2;
+        .upload-card {
+            background: white;
+            border-radius: 12px;
+            border: 2px dashed #e5e7eb;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-card:hover {
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-card.selected {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
             color: white;
-            font-weight: 600;
-            border-radius: 6px;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
         }
-        .btn-fb:hover { background-color: #166fe5; }
-        .btn-fb:disabled { background-color: #e4e6eb; color: #bcc0c4; cursor: not-allowed; }
-
-        /* Secondary Button */
-        .btn-secondary {
-            background-color: #e4e6eb;
-            color: #050505;
-            font-weight: 600;
-            border-radius: 6px;
+        
+        .btn-gradient:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+            filter: brightness(1.1);
         }
-        .btn-secondary:hover { background-color: #d8dadf; }
 
-        /* File Upload Box */
-        .upload-box {
-            border: 2px dashed #ccd0d5;
-            background-color: #f7f8fa;
-            border-radius: 8px;
-            transition: all 0.2s;
-            cursor: pointer;
+        .btn-gradient:disabled {
+            background: #9ca3af;
+            box-shadow: none;
+            cursor: not-allowed;
         }
-        .upload-box:hover { border-color: #1877f2; background-color: #f0f8ff; }
-        .upload-box.selected { border-color: #42b72a; background-color: #e7f3e8; }
 
-        /* Loader */
-        .loader {
-            border: 3px solid #f3f3f3; border-top: 3px solid #1877f2;
-            border-radius: 50%; width: 20px; height: 20px;
-            animation: spin 1s linear infinite; display: inline-block;
-            vertical-align: middle;
+        /* Loader Animation */
+        .dot-flashing {
+            position: relative;
+            width: 8px;
+            height: 8px;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #fff;
+            animation: dot-flashing 1s infinite linear alternate;
+            animation-delay: 0.5s;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Table */
-        .fb-table th { background-color: #f0f2f5; color: #65676b; font-weight: 600; font-size: 0.85rem; }
-        .fb-table td { border-bottom: 1px solid #e4e6eb; font-size: 0.9rem; }
+        .dot-flashing::before, .dot-flashing::after {
+            content: "";
+            display: inline-block;
+            position: absolute;
+            top: 0;
+        }
+        .dot-flashing::before {
+            left: -12px;
+            width: 8px; height: 8px;
+            border-radius: 5px;
+            background-color: #fff;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 0s;
+        }
+        .dot-flashing::after {
+            left: 12px;
+            width: 8px; height: 8px;
+            border-radius: 5px;
+            background-color: #fff;
+            animation: dot-flashing 1s infinite alternate;
+            animation-delay: 1s;
+        }
+        @keyframes dot-flashing {
+            0% { background-color: #fff; }
+            50%, 100% { background-color: rgba(255,255,255,0.2); }
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="flex flex-col items-center py-10 px-4">
 
-    <!-- Navbar -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50 h-16 flex items-center px-4 md:px-8">
-        <div class="flex items-center gap-3 text-[#1877f2]">
-            <i class="fa-solid fa-flask text-3xl"></i>
-            <h1 class="text-2xl font-bold tracking-tight">Soil Data Tool</h1>
-        </div>
-        <div class="ml-auto">
-            <button onclick="window.location.reload()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-full transition" title="รีเซ็ตโปรแกรม">
-                <i class="fa-solid fa-rotate-right text-xl"></i>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Content -->
-    <main class="flex-grow container mx-auto max-w-4xl p-4 md:p-6">
+    <div class="glass-panel w-full max-w-5xl p-8 animate-fade-in-up">
         
-        <!-- Welcome Card -->
-        <div class="fb-card">
-            <h2 class="text-xl font-bold mb-2">👋 ยินดีต้อนรับ</h2>
-            <p class="text-gray-600">โปรแกรมช่วยกรอกข้อมูลผลวิเคราะห์ดินอัตโนมัติ แม่นยำ 100%</p>
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b border-gray-100 pb-6">
+            <div class="flex items-center gap-4 mb-4 md:mb-0">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg">
+                    <i class="fa-solid fa-layer-group text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Data Tool</h1>
+                    <p class="text-gray-500 text-sm font-light">เครื่องมือจัดการข้อมูลอัจฉริยะ (V26 Rich Text Safe)</p>
+                </div>
+            </div>
+            <button onclick="window.location.reload()" class="text-gray-400 hover:text-indigo-600 transition-colors" title="รีเซ็ต">
+                <i class="fa-solid fa-arrows-rotate text-xl"></i>
+            </button>
         </div>
 
-        <!-- Upload Section -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <!-- Step 1 -->
-            <div class="fb-card">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-bold text-gray-700">1. ไฟล์ต้นฉบับ</h3>
-                    <span class="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full font-bold">มีข้อมูล</span>
-                </div>
-                <div class="relative group h-40">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="space-y-3">
+                <label class="block text-sm font-semibold text-gray-700 ml-1">
+                    <i class="fa-solid fa-1 text-indigo-500 mr-2"></i>ไฟล์ต้นฉบับ (Source)
+                </label>
+                <div class="relative h-48 group">
                     <input type="file" id="sourceFile" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFile(this, 'sourceBox')">
-                    <div id="sourceBox" class="upload-box w-full h-full flex flex-col items-center justify-center text-center p-4">
-                        <i class="fa-solid fa-file-excel text-3xl text-gray-400 mb-2"></i>
-                        <span class="text-sm font-medium text-gray-500">คลิกเลือกไฟล์ผลวิเคราะห์</span>
-                        <span class="text-xs text-gray-400 mt-1">(เช่น 69-1665.xlsx)</span>
+                    <div id="sourceBox" class="upload-card w-full h-full flex flex-col items-center justify-center text-center p-6">
+                        <div class="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-import text-2xl text-indigo-500"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-700">อัปโหลดไฟล์ผลวิเคราะห์</h4>
+                        <p class="text-xs text-gray-400 mt-1">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Step 2 -->
-            <div class="fb-card">
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-bold text-gray-700">2. ไฟล์แม่แบบ</h3>
-                    <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-bold">ตารางเปล่า</span>
-                </div>
-                <div class="relative group h-40">
+            <div class="space-y-3">
+                <label class="block text-sm font-semibold text-gray-700 ml-1">
+                    <i class="fa-solid fa-2 text-indigo-500 mr-2"></i>ไฟล์แม่แบบ (Target)
+                </label>
+                <div class="relative h-48 group">
                     <input type="file" id="targetFile" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFile(this, 'targetBox')">
-                    <div id="targetBox" class="upload-box w-full h-full flex flex-col items-center justify-center text-center p-4">
-                        <i class="fa-solid fa-table text-3xl text-gray-400 mb-2"></i>
-                        <span class="text-sm font-medium text-gray-500">คลิกเลือกไฟล์ตารางเปล่า</span>
-                        <span class="text-xs text-gray-400 mt-1">(เช่น data_analysis...)</span>
+                    <div id="targetBox" class="upload-card w-full h-full flex flex-col items-center justify-center text-center p-6">
+                        <div class="w-16 h-16 rounded-full bg-purple-50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-table text-2xl text-purple-500"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-700">อัปโหลดไฟล์ตารางเปล่า</h4>
+                        <p class="text-xs text-gray-400 mt-1">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="fb-card flex flex-col md:flex-row gap-3">
-            <button onclick="previewData()" id="previewBtn" class="btn-secondary flex-1 py-3" disabled>
-                <i class="fa-solid fa-eye mr-2"></i>ตรวจสอบตัวอย่างข้อมูล
+        <div class="flex flex-col md:flex-row gap-4 mb-8">
+            <button onclick="previewData()" id="previewBtn" class="flex-1 py-4 rounded-xl font-semibold bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm" disabled>
+                <i class="fa-solid fa-magnifying-glass mr-2"></i>ตรวจสอบข้อมูล
             </button>
-            <button onclick="downloadData()" id="downloadBtn" class="btn-fb flex-1 py-3" disabled>
-                <i class="fa-solid fa-download mr-2"></i>บันทึกและดาวน์โหลด
+            <button onclick="downloadData()" id="downloadBtn" class="flex-1 py-4 rounded-xl font-semibold btn-gradient flex items-center justify-center gap-2" disabled>
+                <span id="btnText"><i class="fa-solid fa-bolt mr-2"></i>ประมวลผลและดาวน์โหลด</span>
             </button>
         </div>
 
-        <!-- Preview Section -->
-        <div id="previewSection" class="hidden animate-fade-in">
-            <div class="fb-card">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-bold text-gray-800">ตัวอย่างข้อมูล</h3>
-                    <span id="recordCount" class="text-xs text-gray-500"></span>
+        <div id="previewSection" class="hidden transition-all duration-500 ease-in-out">
+            <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-white flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-500"></i> ตัวอย่างข้อมูล
+                    </h3>
+                    <span id="recordCount" class="text-xs font-medium px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full"></span>
                 </div>
-                <div class="overflow-x-auto border border-gray-200 rounded-lg max-h-96">
-                    <table class="w-full text-left fb-table whitespace-nowrap">
-                        <thead class="sticky top-0 bg-[#f0f2f5] z-10">
+                <div class="overflow-auto max-h-[400px]">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 text-gray-600 font-semibold sticky top-0 z-10 shadow-sm">
                             <tr id="previewHeader"></tr>
                         </thead>
-                        <tbody id="previewBody" class="bg-white"></tbody>
+                        <tbody id="previewBody" class="bg-white divide-y divide-gray-100"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Status Log (Hidden mostly, show on error) -->
-        <div id="logArea" class="hidden text-xs text-red-500 text-center mb-4"></div>
+        <div id="logArea" class="hidden mt-4 text-center text-sm text-red-500 bg-red-50 p-3 rounded-lg border border-red-100"></div>
 
-    </main>
+    </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t py-6 text-center">
-        <div class="flex items-center justify-center gap-2 text-gray-700 font-bold text-lg mb-1">
-            <i class="fa-solid fa-flask text-[#1877f2]"></i>
-            <span>กลุ่มวิจัยเคมีดิน</span>
-        </div>
-        <p class="text-gray-400 text-sm">Designed & Developed for Soil Chemistry Research Group</p>
-    </footer>
+    <div class="mt-8 text-center text-white/80 animate-fade-in">
+        <p class="font-medium text-lg mb-1 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-flask"></i> Designed & Developed for Soil Chemistry Research Group
+        </p>
+    </div>
 
     <script>
-        // ==========================================
-        // CONFIGURATION (V19 Logic - The Perfect One)
-        // ==========================================
-        
+        // MAPPING CONFIGURATION (Complete)
         const MAPPING = [
             { id: 'Lab No', src: ['labno'] },
             { id: 'pHH2O', src: ['phh2o', 'phh20'] },
@@ -225,24 +246,19 @@
         let targetWorkbook = null;
         let targetInfo = {};
 
-        // UI Functions
-        function log(msg) {
-            const el = document.getElementById('logArea');
-            el.classList.remove('hidden');
-            el.innerHTML = `<i class="fa-solid fa-circle-exclamation mr-1"></i> ${msg}`;
-        }
-
         function handleFile(input, boxId) {
             const name = input.files[0]?.name;
             const box = document.getElementById(boxId);
             if(name) {
                 box.innerHTML = `
-                    <div class="text-green-600 flex flex-col items-center">
-                        <i class="fa-solid fa-circle-check text-4xl mb-2"></i>
-                        <span class="font-bold text-sm truncate max-w-[200px]">${name}</span>
+                    <div class="flex flex-col items-center animate-bounce-short">
+                        <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                            <i class="fa-solid fa-check text-green-600 text-xl"></i>
+                        </div>
+                        <span class="font-bold text-gray-800 text-sm truncate max-w-[200px]">${name}</span>
+                        <span class="text-xs text-green-600 mt-1">พร้อมใช้งาน</span>
                     </div>`;
                 box.classList.add('selected');
-                box.classList.remove('border-dashed');
             }
             checkButtons();
         }
@@ -251,6 +267,12 @@
             const f1 = document.getElementById('sourceFile').files[0];
             const f2 = document.getElementById('targetFile').files[0];
             if(f1 && f2) document.getElementById('previewBtn').disabled = false;
+        }
+
+        function log(msg) {
+            const el = document.getElementById('logArea');
+            el.classList.remove('hidden');
+            el.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${msg}`;
         }
 
         function getSafeStr(cellVal) {
@@ -266,22 +288,23 @@
             return getSafeStr(s).toLowerCase().replace(/[\s\.\/\-\(\)]/g, '');
         }
 
-        // Logic Functions (V19 Logic)
         async function previewData() {
             const btn = document.getElementById('previewBtn');
+            const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<span class="loader mr-2"></span> กำลังประมวลผล...';
+            btn.innerHTML = '<div class="dot-flashing mx-auto"></div>';
+            
             document.getElementById('logArea').classList.add('hidden');
             document.getElementById('previewSection').classList.add('hidden');
             
             try {
-                // 1. Source File
+                // 1. Source Reading
                 const sFile = document.getElementById('sourceFile').files[0];
                 const sBuf = await readFile(sFile);
                 const sWb = XLSX.read(sBuf, {type:'array'});
                 
                 const sheetName = sWb.SheetNames.find(n => n.includes('ผลวิเคราะห์'));
-                if (!sheetName) throw new Error("ไม่พบ Sheet ชื่อ 'ผลวิเคราะห์' ในไฟล์ต้นฉบับ");
+                if (!sheetName) throw new Error("ไม่พบ Sheet 'ผลวิเคราะห์' ในไฟล์ต้นฉบับ");
                 
                 const sSheet = sWb.Sheets[sheetName];
                 const sDataFull = XLSX.utils.sheet_to_json(sSheet, {header:1, raw:false, defval:''});
@@ -297,7 +320,7 @@
                     if(sHeaderIdx !== -1) break;
                 }
 
-                if(sHeaderIdx === -1) throw new Error("รูปแบบไฟล์ไม่ถูกต้อง: ไม่พบคำว่า 'Lab No.' ใน Sheet ผลวิเคราะห์");
+                if(sHeaderIdx === -1) throw new Error("ไม่พบหัวตาราง 'Lab No.' ใน Sheet ผลวิเคราะห์");
 
                 const sHeaderRow = sDataFull[sHeaderIdx];
                 const sourceColMap = {}; 
@@ -327,7 +350,7 @@
                     count++;
                 }
 
-                // 2. Target File
+                // 2. Target Reading
                 const tFile = document.getElementById('targetFile').files[0];
                 const tBuf = await readFile(tFile);
                 targetWorkbook = new ExcelJS.Workbook();
@@ -365,9 +388,9 @@
 
                 // 3. Render Preview
                 const foundIds = MAPPING.filter(m => tColMap[m.id] !== undefined && m.id !== 'Lab No').map(m => m.id);
-                let headHtml = '<th class="px-4 py-3 sticky left-0 z-20 bg-[#f0f2f5] border-b border-r shadow-sm">Lab No.</th>';
+                let headHtml = '<th class="px-6 py-3 sticky left-0 z-20 bg-[#f0f2f5] border-b border-r shadow-sm">Lab No.</th>';
                 foundIds.forEach(id => {
-                    headHtml += `<th class="px-4 py-3 text-center border-b border-r">${id}</th>`;
+                    headHtml += `<th class="px-6 py-3 text-center border-b border-r">${id}</th>`;
                 });
                 document.getElementById('previewHeader').innerHTML = headHtml;
 
@@ -377,13 +400,13 @@
                     if(rIdx <= tHeaderIdx || previewCount >= 5) return;
                     const labNo = String(getSafeStr(row.getCell(tLabIdx).value)).trim();
                     if(sourceDataMap[labNo]) {
-                        let rowHtml = `<tr class="hover:bg-gray-50 transition"><td class="px-4 py-3 font-semibold text-gray-900 border-b border-r sticky left-0 bg-white z-10 shadow-sm">${labNo}</td>`;
+                        let rowHtml = `<tr class="hover:bg-indigo-50/30 transition-colors"><td class="px-6 py-4 border-b border-gray-100 bg-white sticky left-0 z-10 font-bold text-gray-800 shadow-sm">${labNo}</td>`;
                         const data = sourceDataMap[labNo];
                         foundIds.forEach(id => {
                             const val = data[id];
                             const display = (val === undefined || val === '') ? '-' : val;
-                            const color = display === '-' ? 'text-gray-300' : 'text-[#1877f2] font-medium';
-                            rowHtml += `<td class="px-4 py-3 ${color} border-b border-r text-center">${display}</td>`;
+                            const colorClass = display === '-' ? 'text-gray-300' : 'text-indigo-600 font-medium';
+                            rowHtml += `<td class="px-6 py-4 border-b border-gray-100 ${colorClass}">${display}</td>`;
                         });
                         rowHtml += '</tr>';
                         previewHtml += rowHtml;
@@ -392,10 +415,10 @@
                 });
 
                 if(previewCount === 0) {
-                     previewHtml = '<tr><td colspan="100%" class="p-8 text-center text-gray-400">ไม่พบ Lab No. ที่ตรงกันในทั้ง 2 ไฟล์</td></tr>';
+                     previewHtml = '<tr><td colspan="100%" class="p-8 text-center text-gray-400">ไม่พบ Lab No. ที่ตรงกัน</td></tr>';
                 } else {
                     document.getElementById('downloadBtn').disabled = false;
-                    document.getElementById('recordCount').innerText = `เจอข้อมูล ${count} รายการ`;
+                    document.getElementById('recordCount').innerHTML = `<i class="fa-solid fa-check mr-1"></i> พบ ${count} รายการ`;
                 }
 
                 document.getElementById('previewBody').innerHTML = previewHtml;
@@ -406,17 +429,56 @@
                 log(e.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-eye mr-2"></i>ตรวจสอบตัวอย่างข้อมูล';
+                btn.innerHTML = originalText;
             }
         }
 
         async function downloadData() {
             const btn = document.getElementById('downloadBtn');
+            const btnText = document.getElementById('btnText');
+            const originalContent = btnText.innerHTML;
+            
             btn.disabled = true;
-            btn.innerHTML = '<span class="loader mr-2"></span> กำลังบันทึก...';
+            btnText.innerHTML = '<div class="dot-flashing mx-auto"></div>';
             
             try {
                 const ws = targetWorkbook.getWorksheet(1);
+
+                // --- SMART CLEANER FOR HEADERS (Preserve Rich Text) ---
+                for (let r = 1; r <= targetInfo.tHeaderIdx; r++) {
+                    const row = ws.getRow(r);
+                    row.eachCell({ includeEmpty: true }, (cell) => {
+                        // Logic: Disable strike/bold/italic, Keep everything else
+                        
+                        // Case A: Rich Text Object
+                        if (cell.value && typeof cell.value === 'object' && 'richText' in cell.value) {
+                            const newRichText = cell.value.richText.map(part => {
+                                // Clone font or create empty object
+                                const newFont = { ...(part.font || {}) };
+                                // Force disable these specific styles
+                                newFont.strike = false;
+                                newFont.bold = false;
+                                newFont.italic = false;
+                                // Return updated part
+                                return { ...part, font: newFont };
+                            });
+                            cell.value = { richText: newRichText };
+                        } 
+                        // Case B: Simple Value (String/Number/Formula)
+                        else {
+                            const oldFont = cell.font || {};
+                            cell.font = {
+                                ...oldFont,
+                                strike: false,
+                                bold: false,
+                                italic: false,
+                                // Note: We don't overwrite color or name here to keep template style
+                            };
+                        }
+                    });
+                }
+
+                // Write Data
                 ws.eachRow((row, rIdx) => {
                     if(rIdx <= targetInfo.tHeaderIdx) return;
                     const labNo = String(getSafeStr(row.getCell(targetInfo.tLabIdx).value)).trim();
@@ -424,7 +486,19 @@
                         const data = sourceDataMap[labNo];
                         Object.entries(targetInfo.tColMap).forEach(([id, cIdx]) => {
                             const val = data[id];
-                            if(val !== undefined && val !== '') row.getCell(cIdx).value = val;
+                            if(val !== undefined && val !== '') {
+                                const cell = row.getCell(cIdx);
+                                cell.value = val;
+                                // Set data cells to standard clean font
+                                cell.font = {
+                                    name: 'Calibri',
+                                    size: 11,
+                                    bold: false,
+                                    italic: false,
+                                    strike: false,
+                                    color: { argb: 'FF000000' }
+                                };
+                            }
                         });
                     }
                 });
@@ -434,13 +508,17 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "ผลวิเคราะห์_Complete.xlsx";
+                a.download = "ผลวิเคราะห์_สมบูรณ์.xlsx";
                 a.click();
+                
             } catch (e) {
                 log(e.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>เรียบร้อย (ดาวน์โหลดอีกครั้ง)';
+                btnText.innerHTML = '<i class="fa-solid fa-check mr-2"></i>ดาวน์โหลดเรียบร้อย';
+                setTimeout(() => {
+                    btnText.innerHTML = originalContent;
+                }, 3000);
             }
         }
 
