@@ -107,7 +107,7 @@
                     <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
                         Data Tool
                     </h1>
-                    <p class="text-gray-500 text-sm font-medium">Lean Management</p>
+                    <p class="text-gray-500 text-sm font-medium">Professional Soil Analysis Data Processor</p>
                 </div>
             </div>
             <button onclick="window.location.reload()" class="mt-4 md:mt-0 p-3 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all" title="รีเซ็ตโปรแกรม">
@@ -220,43 +220,43 @@
         // --- CONFIGURATION ---
         const MAPPING = [
             { id: 'Lab No', src: ['labno'] },
-            { id: 'pHH2O', src: ['phh2o', 'phh20'] },
-            { id: 'pHKCl', src: ['phkci', 'phkcl'] },
-            { id: 'pHCaCl2', src: ['phcaci2', 'phcacl2'] },
-            { id: 'ค่าการนำไฟฟ้า5/ (EC)', src: ['ec1:5', 'ec15'] },
-            { id: 'อินทรียวัตถุ1/ (OM)', src: ['om', 'อินทรียวัตถุ'] },
-            { id: 'OC', src: ['oc'] },
-            { id: 'ฟอสฟอรัส2/ (P)', src: ['p', 'pbray', 'p-bray', 'ฟอสฟอรัส'] },
-            { id: 'โพแทสเซียม3/ (K)', src: ['avail.k', 'availk'] }, 
-            { id: 'แคลเซียม3/(Ca)', src: ['avail.ca', 'availca'] }, 
-            { id: 'แมกนีเซียม3/ (Mg)', src: ['avail.mg', 'availmg'] },
-            { id: 'Extr.Na', src: ['avail.na', 'availna', 'extr.na'] },
+            { id: 'Active Carbon', src: ['activecarbon'] },
+            { id: 'BS', src: ['%bs', 'bs'] },
+            { id: 'CEC', src: ['cecnh40acph7', 'cec'] },
+            { id: 'EA', src: ['eabacl2', 'ea'] },
+            { id: 'ECe', src: ['ece'] },
             { id: 'Exch.Al', src: ['ai-kci', 'aikci', 'alkcl', 'al-kcl'] },
             { id: 'Exch.Ca2+', src: ['exch.ca', 'exchca'] },
             { id: 'Exch.K+', src: ['exch.k', 'exchk'] },
             { id: 'Exch.Mg2+', src: ['exch.mg', 'exchmg'] },
             { id: 'Exch.Na+', src: ['exch.na', 'exchna'] },
-            { id: 'Sol.Ca2+', src: ['sol.ca2+', 'solca2+', 'sol.ca'] },
-            { id: 'Sol.K+', src: ['sol.k+', 'solk+', 'sol.k'] },
-            { id: 'Sol.Mg2+', src: ['sol.mg2+', 'solmg2+', 'sol.mg'] },
-            { id: 'Sol.Na+', src: ['sol.na+', 'solna+', 'sol.na'] },
-            { id: 'Sol.Cl-', src: ['sol.cl-', 'solcl-'] },
-            { id: 'Sol.CO32-', src: ['sol.co32-', 'solco32-'] },
-            { id: 'Sol.HCO3-', src: ['sol.hco3-', 'solhco3-'] },
-            { id: 'Sol.SO42-', src: ['sol.so42-', 'solso42-'] },
             { id: 'Extr.Cu', src: ['cu-dtpa', 'cudtpa'] },
             { id: 'Extr.Fe', src: ['fe-dtpa', 'fedtpa'] },
             { id: 'Extr.Mn', src: ['mn-dtpa', 'mndtpa'] },
+            { id: 'Extr.Na', src: ['avail.na', 'availna', 'extr.na'] },
+            { id: 'Extr.S', src: ['s-nh4oacph5', 'snh4', 'extr.s'] },
             { id: 'Extr.Zn', src: ['zn-dtpa', 'zndtpa'] },
             { id: 'Fe2O3', src: ['fe-dcb', 'fedcb', 'fe2o3'] },
-            { id: 'Extr.S', src: ['s-nh4oacph5', 'snh4', 'extr.s'] },
-            { id: 'Active Carbon', src: ['activecarbon'] },
-            { id: 'CEC', src: ['cecnh40acph7', 'cec'] },
-            { id: 'BS', src: ['%bs', 'bs'] },
-            { id: 'EA', src: ['ea-bacl2', 'eabacl2', 'ea'] },
-            { id: 'ECe', src: ['ece'] },
             { id: 'GR', src: ['gr'] },
-            { id: 'LR', src: ['lr'] }
+            { id: 'LR', src: ['lr'] },
+            { id: 'OC', src: ['oc'] },
+            { id: 'pHCaCl2', src: ['phcaci2', 'phcacl2'] },
+            { id: 'pHH2O', src: ['phh2o', 'phh20'] },
+            { id: 'pHKCl', src: ['phkci', 'phkcl'] },
+            { id: 'Sol.Ca2+', src: ['sol.ca2+', 'solca2+', 'sol.ca'] },
+            { id: 'Sol.Cl-', src: ['sol.cl-', 'solcl-'] },
+            { id: 'Sol.CO32-', src: ['sol.co32-', 'solco32-'] },
+            { id: 'Sol.HCO3-', src: ['sol.hco3-', 'solhco3-'] },
+            { id: 'Sol.K+', src: ['sol.k+', 'solk+', 'sol.k'] },
+            { id: 'Sol.Mg2+', src: ['sol.mg2+', 'solmg2+', 'sol.mg'] },
+            { id: 'Sol.Na+', src: ['sol.na+', 'solna+', 'sol.na'] },
+            { id: 'Sol.SO42-', src: ['sol.so42-', 'solso42-'] },
+            { id: 'ค่าการนำไฟฟ้า5/ (EC)', src: ['ec1:5', 'ec15'] },
+            { id: 'แคลเซียม3/(Ca)', src: ['avail.ca', 'availca'] },
+            { id: 'โพแทสเซียม3/ (K)', src: ['avail.k', 'availk'] },
+            { id: 'ฟอสฟอรัส2/ (P)', src: ['p', 'pbray', 'p-bray', 'ฟอสฟอรัส'] }, // Keep 'p' here, logic handles collision
+            { id: 'แมกนีเซียม3/ (Mg)', src: ['avail.mg', 'availmg'] },
+            { id: 'อินทรียวัตถุ1/ (OM)', src: ['om', 'อินทรียวัตถุ'] }
         ];
 
         let sourceDataMap = {}; 
@@ -270,7 +270,6 @@
                 const box = document.getElementById(boxId);
                 const nameSpan = box.querySelector(boxId === 'sourceBox' ? '#sourceName' : '#targetName');
                 nameSpan.innerText = file.name;
-                
                 box.querySelector('.default-content').classList.add('hidden');
                 box.querySelector('.success-content').classList.remove('hidden');
                 box.classList.add('active');
@@ -308,6 +307,7 @@
         // Main Functions
         async function previewData() {
             const btn = document.getElementById('previewBtn');
+            const originalText = btn.innerHTML; // No more error here, using proper variable scope
             btn.disabled = true;
             btn.innerHTML = '<div class="loader-dots"><span></span><span></span><span></span></div>';
             
@@ -346,7 +346,13 @@
                     if(m.id === 'Lab No') return;
                     for(let j=0; j<sHeaderRow.length; j++) {
                         const h = cleanStr(sHeaderRow[j]);
-                        if(m.src.some(k => h === cleanStr(k) || h.includes(cleanStr(k)))) {
+                        // STRICT P MATCHING LOGIC
+                        if(m.src.some(k => {
+                            const ck = cleanStr(k);
+                            // If keyword is 'p', enforce strict match to avoid 'ph'
+                            if (ck === 'p') return h === ck;
+                            return h === ck || h.includes(ck);
+                        })) {
                             sourceColMap[m.id] = j; break; 
                         }
                     }
@@ -446,7 +452,7 @@
                 log(e.message);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass mr-2"></i> ตรวจสอบข้อมูล'; // Restore Button Text
+                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ตรวจสอบข้อมูล'; // Safe reset
             }
         }
 
@@ -456,7 +462,7 @@
             const originalText = dlText.innerText;
             
             btn.disabled = true;
-            dlText.innerHTML = 'กำลังประมวลผล...';
+            dlText.innerText = 'กำลังประมวลผล...';
             
             try {
                 const ws = targetWorkbook.getWorksheet(1);
